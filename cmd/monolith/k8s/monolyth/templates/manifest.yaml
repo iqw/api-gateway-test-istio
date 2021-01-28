@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monolyth-deployment
+  labels:
+    app: monolyth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monolyth
+  template:
+    metadata:
+      labels:
+        app: monolyth
+    spec:
+      containers:
+        - name: app
+          image: theiqw/go-test-monolith:1.0.0
+          ports:
+            - containerPort: 8090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monolyth-service
+spec:
+  selector:
+    app: monolyth
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8090
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: monolyth
+  annotations:
+    kubernetes.io/ingress.class: kong
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: monolyth-service
+              servicePort: 80

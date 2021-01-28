@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-service-deployment
+  labels:
+    app: hello-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-service
+  template:
+    metadata:
+      labels:
+        app: hello-service
+    spec:
+      containers:
+        - name: app
+          image: theiqw/go-test-hello-service:1.0.0
+          ports:
+            - containerPort: 8090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-service-service
+spec:
+  selector:
+    app: hello-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8090
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hello-service
+  annotations:
+    kubernetes.io/ingress.class: kong
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /v1/hello
+            backend:
+              serviceName: hello-service-service
+              servicePort: 80
+          - path: /v2/hello
+            backend:
+              serviceName: hello-service-service
+              servicePort: 80
