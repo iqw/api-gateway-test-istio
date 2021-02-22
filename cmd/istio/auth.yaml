@@ -1,0 +1,29 @@
+apiVersion: "security.istio.io/v1beta1"
+kind: "RequestAuthentication"
+metadata:
+  name: "jwt-example"
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  jwtRules:
+    - issuer: "ISSUER"
+      jwks: |
+        { "keys":[{"e":"AQAB","kid":"izIftPaqhXiiz_3JVuHPAHCc5_XlmU_CjxlzUZls04o","kty":"RSA","n":"7L3P4aFoPfdQtXvk7jg8HXubx0SrQHGTyKP-4T4ex0OQRKpQ2QeUesRQH22KdtDtEfgpzmZzcIXhbzKtEcWv1uevu7njysZGTGTk0IKmXYi8N8cPGVliojd-zALpe4J3o0ufDM-8T4JdgmQO4WEwUqNZ9wfwKiLOGPDU7EiaW0YyPe5YHC3uKpzBt6fXs-8gyqnHx-zzbUKCdLm4YGXmhRMitvhhNH8fbOPaHc69HADxdIfDv4bQ8WoBL75ywUW1mV_6mwTNdiQU32he-0FBggviSu8uY5vHpzCees_5lPBFrzUj69blnDjk8RO6yTiTilZeShP0FMLTWJbLLF6Enw"}]}
+      outputPayloadToHeader: "X-Token-Payload"
+---
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "frontend-ingress"
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  action: DENY
+  rules:
+    - from:
+        - source:
+            notRequestPrincipals: [ "*" ]
