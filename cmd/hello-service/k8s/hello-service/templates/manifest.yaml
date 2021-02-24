@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: theiqw/go-test-hello-service:1.0.0
+          image: theiqw/go-test-hello-service:latest
           ports:
             - containerPort: 8090
 
@@ -34,21 +34,38 @@ spec:
       targetPort: 8090
 
 ---
-apiVersion: extensions/v1beta1
-kind: Ingress
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: hello-service-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
 metadata:
   name: hello-service
-  annotations:
-    kubernetes.io/ingress.class: kong
 spec:
-  rules:
-    - http:
-        paths:
-          - path: /v1/hello
-            backend:
-              serviceName: hello-service-service
-              servicePort: 80
-          - path: /v2/hello
-            backend:
-              serviceName: hello-service-service
-              servicePort: 80
+  hosts:
+    - "*"
+  gateways:
+    - hello-service-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /v1/hello
+        - uri:
+            prefix: /v2/hello
+      route:
+        - destination:
+            host: hello-service-service
+            port:
+              number: 80
